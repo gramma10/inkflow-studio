@@ -1,12 +1,64 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppointmentForm } from "@/components/AppointmentForm";
+import { AvailabilityCalendar } from "@/components/AvailabilityCalendar";
+import { DailySchedule } from "@/components/DailySchedule";
+import { Plus, Calendar, Clock } from "lucide-react";
 
 const Index = () => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Tattoo Studio</h1>
+              <p className="text-sm text-muted-foreground">Διαχείριση Ραντεβού</p>
+            </div>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Νέο Ραντεβού
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Προσθήκη Ραντεβού</DialogTitle>
+                </DialogHeader>
+                <AppointmentForm onSuccess={() => setIsFormOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6">
+        <Tabs defaultValue="availability" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="availability" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Διαθεσιμότητα
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Πρόγραμμα
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="availability">
+            <AvailabilityCalendar />
+          </TabsContent>
+
+          <TabsContent value="schedule">
+            <DailySchedule />
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };
