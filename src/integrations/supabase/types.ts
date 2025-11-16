@@ -14,13 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          artist_id: string
+          client_name: string
+          created_at: string | null
+          description: string | null
+          end_time: string
+          id: string
+          price: number | null
+          start_time: string
+        }
+        Insert: {
+          artist_id: string
+          client_name: string
+          created_at?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          price?: number | null
+          start_time: string
+        }
+        Update: {
+          artist_id?: string
+          client_name?: string
+          created_at?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          price?: number | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artists: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_chair_availability: {
+        Args: {
+          p_appointment_id?: string
+          p_end_time: string
+          p_start_time: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
