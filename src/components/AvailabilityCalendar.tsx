@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AppointmentForm } from "./AppointmentForm";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const AvailabilityCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
+  const { role } = useAuth();
+
   const { data: appointments } = useAppointments(selectedDate);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 10); // 10:00 - 21:00
@@ -23,11 +25,12 @@ export const AvailabilityCalendar = () => {
     const nextHour = new Date(timeSlot);
     nextHour.setHours(hour + 1, 0, 0, 0);
 
-    const overlapping = appointments?.filter((apt) => {
-      const aptStart = new Date(apt.start_time);
-      const aptEnd = new Date(apt.end_time);
-      return (aptStart < nextHour && aptEnd > timeSlot);
-    }) || [];
+    const overlapping =
+      appointments?.filter((apt) => {
+        const aptStart = new Date(apt.start_time);
+        const aptEnd = new Date(apt.end_time);
+        return aptStart < nextHour && aptEnd > timeSlot;
+      }) || [];
 
     return 4 - overlapping.length;
   };
@@ -39,9 +42,12 @@ export const AvailabilityCalendar = () => {
   };
 
   const handleTimeSlotClick = (hour: number) => {
+    const isEmployee = role === "employee";
+    if (!isEmployee) return;
+
     const available = getChairAvailability(hour);
     if (available > 0) {
-      setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
+      setSelectedTime(`${hour.toString().padStart(2, "0")}:00`);
       setIsFormOpen(true);
     }
   };

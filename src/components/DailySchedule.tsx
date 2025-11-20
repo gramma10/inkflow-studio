@@ -6,10 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const DailySchedule = () => {
   const [selectedDate] = useState(new Date());
   const { data: appointments, isLoading } = useAppointments(selectedDate);
+  const { role } = useAuth();
+  const isEmployee = role === "employee";
 
   if (isLoading) {
     return <div>Φόρτωση...</div>;
