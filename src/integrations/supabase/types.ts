@@ -77,18 +77,21 @@ export type Database = {
         Row: {
           artist_id: string | null
           created_at: string | null
+          display_name: string | null
           email: string | null
           id: string
         }
         Insert: {
           artist_id?: string | null
           created_at?: string | null
+          display_name?: string | null
           email?: string | null
           id: string
         }
         Update: {
           artist_id?: string | null
           created_at?: string | null
+          display_name?: string | null
           email?: string | null
           id?: string
         }
