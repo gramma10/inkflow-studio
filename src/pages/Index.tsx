@@ -11,30 +11,90 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, role, loading, logout } = useAuth();
+
+  useEffect(() => {
+    document.title = "Πρόγραμμα | Tattoo Studio";
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth", { replace: true });
+    }
+  }, [loading, user, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Tattoo Studio</h1>
               <p className="text-sm text-muted-foreground">Διαχείριση Ραντεβού</p>
             </div>
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Νέο Ραντεβού
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Προσθήκη Ραντεβού</DialogTitle>
-                </DialogHeader>
-                <AppointmentForm onSuccess={() => setIsFormOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center gap-3">
+              {!loading && (
+                <>
+                  {user && (
+                    <div className="text-right hidden sm:block">
+                      <p className="text-xs text-muted-foreground">Συνδεδεμένος ως</p>
+                      <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
+                        {user.email}
+                      </p>
+                      {role && (
+                        <p className="text-xs text-muted-foreground">
+                          Ρόλος: {role === "employee" ? "Υπάλληλος / Καλλιτέχνης" : "Άλλος"}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {!user && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/auth")}
+                    >
+                      Σύνδεση
+                    </Button>
+                  )}
+                  {user && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate("/profile")}
+                      >
+                        Προφίλ
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={logout}
+                      >
+                        Αποσύνδεση
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+              {!loading && role === "employee" && (
+                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Νέο Ραντεβού
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Προσθήκη Ραντεβού</DialogTitle>
+                    </DialogHeader>
+                    <AppointmentForm onSuccess={() => setIsFormOpen(false)} />
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
           </div>
         </div>
       </header>
