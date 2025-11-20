@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,6 +7,7 @@ import { AppointmentForm } from "@/components/AppointmentForm";
 import { AvailabilityCalendar } from "@/components/AvailabilityCalendar";
 import { DailySchedule } from "@/components/DailySchedule";
 import { Plus, Calendar, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
