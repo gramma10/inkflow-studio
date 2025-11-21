@@ -17,32 +17,41 @@ export type Database = {
       appointments: {
         Row: {
           artist_id: string
+          chair_id: number
           client_name: string
+          color: string | null
           created_at: string | null
           description: string | null
           end_time: string
           id: string
           price: number | null
+          service: string | null
           start_time: string
         }
         Insert: {
           artist_id: string
+          chair_id: number
           client_name: string
+          color?: string | null
           created_at?: string | null
           description?: string | null
           end_time: string
           id?: string
           price?: number | null
+          service?: string | null
           start_time: string
         }
         Update: {
           artist_id?: string
+          chair_id?: number
           client_name?: string
+          color?: string | null
           created_at?: string | null
           description?: string | null
           end_time?: string
           id?: string
           price?: number | null
+          service?: string | null
           start_time?: string
         }
         Relationships: [
@@ -51,6 +60,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_chair_id_fkey"
+            columns: ["chair_id"]
+            isOneToOne: false
+            referencedRelation: "chairs"
             referencedColumns: ["id"]
           },
         ]
@@ -70,6 +86,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      chairs: {
+        Row: {
+          created_at: string | null
+          end_hour: number
+          id: number
+          name: string
+          start_hour: number
+        }
+        Insert: {
+          created_at?: string | null
+          end_hour?: number
+          id: number
+          name: string
+          start_hour?: number
+        }
+        Update: {
+          created_at?: string | null
+          end_hour?: number
+          id?: number
+          name?: string
+          start_hour?: number
         }
         Relationships: []
       }
@@ -131,14 +171,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_chair_availability: {
-        Args: {
-          p_appointment_id?: string
-          p_end_time: string
-          p_start_time: string
-        }
-        Returns: boolean
-      }
+      check_chair_availability:
+        | {
+            Args: {
+              p_appointment_id?: string
+              p_chair_id: number
+              p_end_time: string
+              p_start_time: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_appointment_id?: string
+              p_end_time: string
+              p_start_time: string
+            }
+            Returns: boolean
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
