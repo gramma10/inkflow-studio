@@ -76,7 +76,7 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
               onClick={() => handleSlotClick(hour)}
             >
               <span className="absolute left-2 top-1 text-xs text-muted-foreground">
-                {format(setHours(new Date(), hour), 'HH:mm')}
+                {hour}:00
               </span>
               {/* 30-minute line */}
               <div className="absolute top-10 w-full border-t border-dashed border-border/50" />
@@ -115,7 +115,7 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Νέο Ραντεβού - {chair.name}</DialogTitle>
           </DialogHeader>
@@ -129,7 +129,7 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
       </Dialog>
 
       <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Λεπτομέρειες Ραντεβού</DialogTitle>
           </DialogHeader>
