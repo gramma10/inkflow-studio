@@ -5,11 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useArtists } from "@/hooks/useArtists";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -29,7 +27,6 @@ const profileSchema = z.object({
     .trim()
     .max(100, "Το όνομα εμφάνισης πρέπει να είναι έως 100 χαρακτήρες")
     .optional(),
-  artist_id: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -44,7 +41,6 @@ interface ProfileData {
 const Profile = () => {
   const navigate = useNavigate();
   const { user, role, loading: authLoading } = useAuth();
-  const { data: artists, isLoading: artistsLoading } = useArtists();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,7 +49,6 @@ const Profile = () => {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       display_name: "",
-      artist_id: "none",
     },
   });
 
@@ -88,7 +83,6 @@ const Profile = () => {
           setProfile(data);
           form.reset({
             display_name: data.display_name || "",
-            artist_id: data.artist_id || "none",
           });
         }
       } catch (error) {
@@ -114,7 +108,6 @@ const Profile = () => {
         .from("profiles")
         .update({
           display_name: values.display_name?.trim() || null,
-          artist_id: values.artist_id === "none" ? null : values.artist_id || null,
         })
         .eq("id", user.id);
 
@@ -131,7 +124,6 @@ const Profile = () => {
           ? {
               ...prev,
               display_name: values.display_name?.trim() || null,
-              artist_id: values.artist_id === "none" ? null : values.artist_id || null,
             }
           : null,
       );
@@ -154,8 +146,6 @@ const Profile = () => {
   if (!user || !profile) {
     return null;
   }
-
-  const selectedArtist = artists?.find((a) => a.id === form.watch("artist_id"));
 
   return (
     <div className="min-h-screen bg-background">
@@ -229,50 +219,6 @@ const Profile = () => {
                     </FormItem>
                   )}
                 />
-
-                {role === "employee" && (
-                  <FormField
-                    control={form.control}
-                    name="artist_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Σύνδεση με Καλλιτέχνη</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={artistsLoading}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Επιλέξτε καλλιτέχνη" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Κανένας</SelectItem>
-                            {artists?.map((artist) => (
-                              <SelectItem key={artist.id} value={artist.id}>
-                                {artist.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Συνδέστε το προφίλ σας με έναν καλλιτέχνη του studio
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {role === "employee" && selectedArtist && (
-                  <div className="rounded-lg bg-muted/50 p-4 space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                      Επιλεγμένος Καλλιτέχνης
-                    </p>
-                    <p className="text-sm text-muted-foreground">{selectedArtist.name}</p>
-                  </div>
-                )}
 
                 <Button type="submit" className="w-full" disabled={isSaving}>
                   {isSaving ? "Αποθήκευση..." : "Αποθήκευση Αλλαγών"}
