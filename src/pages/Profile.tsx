@@ -53,7 +53,7 @@ const Profile = () => {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       display_name: "",
-      artist_id: "",
+      artist_id: "none",
     },
   });
 
@@ -88,7 +88,7 @@ const Profile = () => {
           setProfile(data);
           form.reset({
             display_name: data.display_name || "",
-            artist_id: data.artist_id || "",
+            artist_id: data.artist_id || "none",
           });
         }
       } catch (error) {
@@ -114,7 +114,7 @@ const Profile = () => {
         .from("profiles")
         .update({
           display_name: values.display_name?.trim() || null,
-          artist_id: values.artist_id || null,
+          artist_id: values.artist_id === "none" ? null : values.artist_id || null,
         })
         .eq("id", user.id);
 
@@ -131,7 +131,7 @@ const Profile = () => {
           ? {
               ...prev,
               display_name: values.display_name?.trim() || null,
-              artist_id: values.artist_id || null,
+              artist_id: values.artist_id === "none" ? null : values.artist_id || null,
             }
           : null,
       );
@@ -248,7 +248,7 @@ const Profile = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Κανένας</SelectItem>
+                            <SelectItem value="none">Κανένας</SelectItem>
                             {artists?.map((artist) => (
                               <SelectItem key={artist.id} value={artist.id}>
                                 {artist.name}
