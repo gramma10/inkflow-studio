@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useArtists } from "@/hooks/useArtists";
+import { useChairs } from "@/hooks/useChairs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,9 +17,12 @@ import { format } from "date-fns";
 const appointmentSchema = z.object({
   client_name: z.string().min(1, "Το όνομα πελάτη είναι υποχρεωτικό"),
   artist_id: z.string().min(1, "Επιλέξτε καλλιτέχνη"),
+  chair_id: z.string().min(1, "Επιλέξτε καρέκλα"),
   date: z.string().min(1, "Η ημερομηνία είναι υποχρεωτική"),
   time: z.string().min(1, "Η ώρα είναι υποχρεωτική"),
   duration: z.string().min(1, "Επιλέξτε διάρκεια"),
+  service: z.string().optional(),
+  color: z.string().optional(),
   price: z.string().optional(),
   description: z.string().optional(),
 });
@@ -27,62 +31,93 @@ type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
 interface AppointmentFormProps {
   selectedDate?: Date;
-  selectedTime?: string;
+  selectedTime?: Date;
+  selectedChairId?: number;
+  appointment?: any;
   onSuccess?: () => void;
 }
 
-export const AppointmentForm = ({ selectedDate, selectedTime, onSuccess }: AppointmentFormProps) => {
+export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, appointment, onSuccess }: AppointmentFormProps) => {
   const { data: artists } = useArtists();
+  const { data: chairs } = useChairs();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
-    defaultValues: {
+    defaultValues: appointment ? {
+      client_name: appointment.client_name || "",
+      artist_id: appointment.artist_id || "",
+      chair_id: appointment.chair_id?.toString() || "",
+      date: format(new Date(appointment.start_time), "yyyy-MM-dd"),
+      time: format(new Date(appointment.start_time), "HH:mm"),
+      duration: ((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000).toString(),
+      service: appointment.service || "",
+      color: appointment.color || "#8B5CF6",
+      price: appointment.price?.toString() || "",
+      description: appointment.description || "",
+    } : {
       client_name: "",
       artist_id: "",
+      chair_id: selectedChairId?.toString() || "",
       date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-      time: selectedTime || "10:00",
+      time: selectedTime ? format(selectedTime, "HH:mm") : "10:00",
       duration: "60",
+      service: "",
+      color: "#8B5CF6",
       price: "",
       description: "",
     },
   });
 
-  const createAppointment = useMutation({
+  const saveAppointment = useMutation({
     mutationFn: async (data: AppointmentFormData) => {
       const startTime = new Date(`${data.date}T${data.time}`);
       const endTime = new Date(startTime.getTime() + parseInt(data.duration) * 60000);
 
-      const { error } = await supabase.from("appointments").insert({
+      const appointmentData = {
         client_name: data.client_name,
         artist_id: data.artist_id,
+        chair_id: parseInt(data.chair_id),
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
+        service: data.service || null,
+        color: data.color || "#8B5CF6",
         price: data.price ? parseFloat(data.price) : null,
         description: data.description || null,
-      });
+      };
 
-      if (error) throw error;
+      if (appointment) {
+        const { error } = await supabase
+          .from("appointments")
+          .update(appointmentData)
+          .eq("id", appointment.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("appointments")
+          .insert(appointmentData);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      toast.success("Το ραντεβού δημιουργήθηκε επιτυχώς!");
+      toast.success(appointment ? "Το ραντεβού ενημερώθηκε επιτυχώς!" : "Το ραντεβού δημιουργήθηκε επιτυχώς!");
       form.reset();
       onSuccess?.();
     },
     onError: (error: any) => {
-      if (error.message?.includes("Δεν υπάρχουν διαθέσιμες καρέκλες")) {
-        toast.error("Δεν υπάρχουν διαθέσιμες καρέκλες για αυτή την ώρα.");
+      if (error.message?.includes("ήδη κρατημένη")) {
+        toast.error("Αυτή η ώρα είναι ήδη κρατημένη για αυτή την καρέκλα.");
       } else {
-        toast.error("Σφάλμα κατά τη δημιουργία του ραντεβού");
+        toast.error(appointment ? "Σφάλμα κατά την ενημέρωση του ραντεβού" : "Σφάλμα κατά τη δημιουργία του ραντεβού");
       }
     },
   });
 
   const onSubmit = async (data: AppointmentFormData) => {
     setIsSubmitting(true);
-    await createAppointment.mutateAsync(data);
+    await saveAppointment.mutateAsync(data);
     setIsSubmitting(false);
   };
 
@@ -123,6 +158,72 @@ export const AppointmentForm = ({ selectedDate, selectedTime, onSuccess }: Appoi
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="chair_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Καρέκλα</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} disabled={!!selectedChairId}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Επιλέξτε καρέκλα" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {chairs?.map((chair) => (
+                    <SelectItem key={chair.id} value={chair.id.toString()}>
+                      {chair.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="service"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Υπηρεσία</FormLabel>
+              <FormControl>
+                <Input placeholder="π.χ. Τατουάζ, Piercing" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Χρώμα</FormLabel>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input type="color" {...field} className="w-20 h-10" />
+                </FormControl>
+                <div className="flex gap-1 flex-wrap flex-1">
+                  {["#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#EF4444"].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      onClick={() => field.onChange(color)}
+                    />
+                  ))}
+                </div>
+              </div>
               <FormMessage />
             </FormItem>
           )}
