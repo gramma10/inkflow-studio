@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "employee" | "other" | null;
+export type AppRole = "employee" | "admin" | null;
 
 interface AuthContextValue {
   user: User | null;
@@ -41,12 +41,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const preferredRole =
         (currentUser.user_metadata?.preferred_role === "employee"
           ? "employee"
-          : "other") as AppRole;
+          : "admin") as AppRole;
 
-      const { error: insertError } = await supabase.from("user_roles").insert({
+      const { error: insertError } = await supabase.from("user_roles").insert([{
         user_id: currentUser.id,
         role: preferredRole,
-      });
+      }]);
 
       if (insertError) {
         console.error("Failed to insert user role", insertError);

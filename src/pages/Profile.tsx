@@ -190,8 +190,8 @@ const Profile = () => {
                 <Badge variant="secondary">
                   {role === "employee"
                     ? "Υπάλληλος / Καλλιτέχνης"
-                    : role === "other"
-                      ? "Άλλος"
+                    : role === "admin"
+                      ? "Διαχειριστής"
                       : "Μη ορισμένος"}
                 </Badge>
               </div>
