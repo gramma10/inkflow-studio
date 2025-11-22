@@ -57,7 +57,7 @@ export const AppointmentDetail = ({ appointment, onClose }: AppointmentDetailPro
   return (
     <>
       <div className="space-y-4">
-        {role === "employee" && (
+        {(role === "employee" || role === "admin") && (
           <>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Πελάτης</label>
@@ -85,7 +85,7 @@ export const AppointmentDetail = ({ appointment, onClose }: AppointmentDetailPro
           </p>
         </div>
 
-        {role === "employee" && (
+        {(role === "employee" || role === "admin") && (
           <>
             {appointment.price && (
               <div>

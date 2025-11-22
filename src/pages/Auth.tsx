@@ -26,7 +26,7 @@ const loginSchema = z.object({
 });
 
 const signupSchema = loginSchema.extend({
-  role: z.enum(["employee", "other"], {
+  role: z.enum(["employee", "admin"], {
     required_error: "Επιλέξτε ρόλο",
   }),
 });
@@ -51,7 +51,7 @@ const AuthPage = () => {
     defaultValues: {
       email: "",
       password: "",
-      role: "other",
+      role: "admin",
     },
   });
 
@@ -216,9 +216,9 @@ const AuthPage = () => {
                               </FormLabel>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="other" id="role-other" />
-                              <FormLabel htmlFor="role-other" className="font-normal">
-                                Άλλος (π.χ. διαχειριστής, βοηθός)
+                              <RadioGroupItem value="admin" id="role-admin" />
+                              <FormLabel htmlFor="role-admin" className="font-normal">
+                                Διαχειριστής
                               </FormLabel>
                             </div>
                           </RadioGroup>
