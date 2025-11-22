@@ -50,10 +50,15 @@ const Index = () => {
                     </p>
                     {role && (
                       <p className="text-xs text-muted-foreground">
-                        {role === "employee" ? "Υπάλληλος" : "Άλλος"}
+                        {role === "employee" ? "Υπάλληλος" : role === "admin" ? "Διαχειριστής" : "Άλλος"}
                       </p>
                     )}
                   </div>
+                  {role === "admin" && (
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin/artists")}>
+                      Καλλιτέχνες
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => navigate("/profile")}>
                     Προφίλ
                   </Button>
