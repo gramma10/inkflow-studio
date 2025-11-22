@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChairs } from "@/hooks/useChairs";
+import { useArtists } from "@/hooks/useArtists";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import { format } from "date-fns";
 
 const appointmentSchema = z.object({
   client_name: z.string().min(1, "Το όνομα πελάτη είναι υποχρεωτικό"),
+  artist_id: z.string().min(1, "Επιλέξτε καλλιτέχνη"),
   chair_id: z.string().min(1, "Επιλέξτε καρέκλα"),
   date: z.string().min(1, "Η ημερομηνία είναι υποχρεωτική"),
   time: z.string().min(1, "Η ώρα είναι υποχρεωτική"),
@@ -37,8 +39,9 @@ interface AppointmentFormProps {
 }
 
 export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, appointment, onSuccess }: AppointmentFormProps) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: chairs } = useChairs();
+  const { data: artists } = useArtists();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userArtistId, setUserArtistId] = useState<string | null>(null);
@@ -65,6 +68,7 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
     resolver: zodResolver(appointmentSchema),
     defaultValues: appointment ? {
       client_name: appointment.client_name || "",
+      artist_id: appointment.artist_id || "",
       chair_id: appointment.chair_id?.toString() || "",
       date: format(new Date(appointment.start_time), "yyyy-MM-dd"),
       time: format(new Date(appointment.start_time), "HH:mm"),
@@ -75,6 +79,7 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
       description: appointment.description || "",
     } : {
       client_name: "",
+      artist_id: userArtistId || "",
       chair_id: selectedChairId?.toString() || "",
       date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       time: selectedTime ? format(selectedTime, "HH:mm") : "10:00",
@@ -88,16 +93,12 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
 
   const saveAppointment = useMutation({
     mutationFn: async (data: AppointmentFormData) => {
-      if (!userArtistId) {
-        throw new Error("Πρέπει να συνδέσετε το προφίλ σας με έναν καλλιτέχνη πρώτα");
-      }
-
       const startTime = new Date(`${data.date}T${data.time}`);
       const endTime = new Date(startTime.getTime() + parseInt(data.duration) * 60000);
 
       const appointmentData = {
         client_name: data.client_name,
-        artist_id: userArtistId,
+        artist_id: data.artist_id,
         chair_id: parseInt(data.chair_id),
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
@@ -153,6 +154,31 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
               <FormControl>
                 <Input placeholder="Εισάγετε όνομα" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="artist_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Καλλιτέχνης</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} disabled={role !== "admin"}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Επιλέξτε καλλιτέχνη" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {artists?.map((artist) => (
+                    <SelectItem key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
