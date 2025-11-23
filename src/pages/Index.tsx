@@ -102,9 +102,9 @@ const Index = () => {
       </div>
 
       {/* 4-Chair Calendar Grid */}
-      <main className="container mx-auto px-2 sm:px-4">
+      <main className="container mx-auto px-1 sm:px-4">
         <ScrollArea className="h-[calc(100vh-130px)] sm:h-[calc(100vh-180px)]">
-          <div className="flex gap-2 sm:gap-4 pb-6 pt-2 sm:pt-4">
+          <div className="flex gap-0.5 sm:gap-4 pb-6 pt-2 sm:pt-4">
             {chairs?.map((chair) => {
               const chairAppointments = appointments?.filter(
                 (apt) => apt.chair_id === chair.id

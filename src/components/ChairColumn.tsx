@@ -14,13 +14,18 @@ interface ChairColumnProps {
   selectedDate: Date;
 }
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
-
 export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<Date | undefined>();
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithArtist | null>(null);
   const { role } = useAuth();
+
+  // Only show working hours
+  const workingHours = Array.from(
+    { length: chair.end_hour - chair.start_hour },
+    (_, i) => chair.start_hour + i
+  );
+  const totalWorkingHours = chair.end_hour - chair.start_hour;
 
   const getAppointmentStyle = (appointment: AppointmentWithArtist) => {
     const start = new Date(appointment.start_time);
@@ -29,7 +34,9 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
     const endMinutes = end.getHours() * 60 + end.getMinutes();
     const duration = endMinutes - startMinutes;
     
-    const top = (startMinutes / 60) * 80; // 80px per hour
+    // Calculate position relative to start_hour
+    const offsetMinutes = startMinutes - (chair.start_hour * 60);
+    const top = (offsetMinutes / 60) * 80; // 80px per hour
     const height = (duration / 60) * 80;
     
     return {
@@ -40,42 +47,33 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
   };
 
   const handleSlotClick = (hour: number) => {
-    if (role !== "employee") return;
-    if (hour < chair.start_hour || hour >= chair.end_hour) return;
+    if (role !== "employee" && role !== "admin") return;
     
     const time = setMinutes(setHours(selectedDate, hour), 0);
     setSelectedTime(time);
     setIsFormOpen(true);
   };
 
-  const isWorkingHour = (hour: number) => {
-    return hour >= chair.start_hour && hour < chair.end_hour;
-  };
-
   return (
     <>
-      <div className="flex-1 min-w-[140px] sm:min-w-[200px]">
-        <div className="sticky top-0 z-10 bg-background border-b border-border p-2 sm:p-3">
-          <h3 className="font-semibold text-sm sm:text-base text-foreground">{chair.name}</h3>
+      <div className="flex-1 min-w-[80px] sm:min-w-[200px]">
+        <div className="sticky top-0 z-10 bg-background border-b border-border p-1.5 sm:p-3">
+          <h3 className="font-semibold text-xs sm:text-base text-foreground truncate">{chair.name}</h3>
         </div>
         
-        <div className="relative" style={{ height: `${24 * 80}px` }}>
-          {/* Hour lines */}
-          {HOURS.map((hour) => (
+        <div className="relative" style={{ height: `${totalWorkingHours * 80}px` }}>
+          {/* Hour lines - only working hours */}
+          {workingHours.map((hour, index) => (
             <div
               key={hour}
-              className={`absolute w-full border-t border-border transition-colors ${
-                isWorkingHour(hour) 
-                  ? 'bg-background hover:bg-accent/50 cursor-pointer' 
-                  : 'bg-muted/30'
-              }`}
+              className="absolute w-full border-t border-border bg-background hover:bg-accent/50 cursor-pointer transition-colors"
               style={{ 
-                top: `${hour * 80}px`, 
+                top: `${index * 80}px`, 
                 height: '80px',
               }}
               onClick={() => handleSlotClick(hour)}
             >
-              <span className="absolute left-2 top-1 text-xs text-muted-foreground">
+              <span className="absolute left-1 sm:left-2 top-1 text-[10px] sm:text-xs text-muted-foreground">
                 {hour}:00
               </span>
               {/* 30-minute line */}
