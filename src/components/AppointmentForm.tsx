@@ -46,24 +46,6 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userArtistId, setUserArtistId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) return;
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("artist_id")
-        .eq("id", user.id)
-        .maybeSingle();
-      
-      if (data?.artist_id) {
-        setUserArtistId(data.artist_id);
-      }
-    };
-    
-    fetchUserProfile();
-  }, [user]);
-
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: appointment ? {
@@ -79,7 +61,7 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
       description: appointment.description || "",
     } : {
       client_name: "",
-      artist_id: userArtistId || "",
+      artist_id: "",
       chair_id: selectedChairId?.toString() || "",
       date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       time: selectedTime ? format(selectedTime, "HH:mm") : "10:00",
@@ -90,6 +72,28 @@ export const AppointmentForm = ({ selectedDate, selectedTime, selectedChairId, a
       description: "",
     },
   });
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("artist_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (data?.artist_id) {
+        setUserArtistId(data.artist_id);
+        // Auto-set artist_id for employees when creating new appointment
+        if (role === "employee" && !appointment) {
+          form.setValue("artist_id", data.artist_id);
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user, role, appointment, form]);
 
   const saveAppointment = useMutation({
     mutationFn: async (data: AppointmentFormData) => {
