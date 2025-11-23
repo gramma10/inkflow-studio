@@ -54,9 +54,9 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
 
   return (
     <>
-      <div className="flex-1 min-w-[200px]">
-        <div className="sticky top-0 z-10 bg-background border-b border-border p-3">
-          <h3 className="font-semibold text-foreground">{chair.name}</h3>
+      <div className="flex-1 min-w-[140px] sm:min-w-[200px]">
+        <div className="sticky top-0 z-10 bg-background border-b border-border p-2 sm:p-3">
+          <h3 className="font-semibold text-sm sm:text-base text-foreground">{chair.name}</h3>
         </div>
         
         <div className="relative" style={{ height: `${24 * 80}px` }}>
@@ -89,7 +89,7 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
             return (
               <Card
                 key={appointment.id}
-                className="absolute left-1 right-1 p-2 cursor-pointer shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+                className="absolute left-0.5 sm:left-1 right-0.5 sm:right-1 p-1.5 sm:p-2 cursor-pointer shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                 style={{
                   top: style.top,
                   height: style.height,
@@ -99,13 +99,13 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
                 }}
                 onClick={() => setSelectedAppointment(appointment)}
               >
-                <div className="text-sm font-medium truncate">
-                  {role === "employee" ? appointment.client_name : "Κλεισμένο"}
+                <div className="text-xs sm:text-sm font-medium truncate">
+                  {role === "employee" || role === "admin" ? appointment.client_name : "Κλεισμένο"}
                 </div>
                 {appointment.service && (
-                  <div className="text-xs opacity-90 truncate">{appointment.service}</div>
+                  <div className="text-[10px] sm:text-xs opacity-90 truncate">{appointment.service}</div>
                 )}
-                <div className="text-xs opacity-75">
+                <div className="text-[10px] sm:text-xs opacity-75">
                   {format(new Date(appointment.start_time), 'HH:mm', { locale: el })} - {format(new Date(appointment.end_time), 'HH:mm', { locale: el })}
                 </div>
               </Card>
@@ -115,9 +115,9 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>Νέο Ραντεβού - {chair.name}</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Νέο Ραντεβού - {chair.name}</DialogTitle>
           </DialogHeader>
           <AppointmentForm 
             selectedDate={selectedDate}
@@ -129,9 +129,9 @@ export const ChairColumn = ({ chair, appointments, selectedDate }: ChairColumnPr
       </Dialog>
 
       <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>Λεπτομέρειες Ραντεβού</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Λεπτομέρειες Ραντεβού</DialogTitle>
           </DialogHeader>
           {selectedAppointment && (
             <AppointmentDetail 

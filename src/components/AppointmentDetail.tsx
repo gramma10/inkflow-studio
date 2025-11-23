@@ -101,7 +101,7 @@ export const AppointmentDetail = ({ appointment, onClose }: AppointmentDetailPro
               </div>
             )}
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 pt-4">
               <Button
                 variant="outline"
                 className="flex-1"
@@ -125,9 +125,9 @@ export const AppointmentDetail = ({ appointment, onClose }: AppointmentDetailPro
       </div>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>Επεξεργασία Ραντεβού</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Επεξεργασία Ραντεβού</DialogTitle>
           </DialogHeader>
           <AppointmentForm 
             appointment={appointment}
